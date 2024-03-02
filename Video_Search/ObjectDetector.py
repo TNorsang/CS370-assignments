@@ -290,7 +290,7 @@ if __name__ == "__main__":
         "https://www.youtube.com/watch?v=Y-bVwPRy_no"
     ]
 
-    output_path = "//Users/norsangnyandak/Documents/Spring 2024/CS370-102 Introduction to Artificial Intelligence/AI-Object-Detection/Main"
+    output_path = "//Users/norsangnyandak/Documents/Spring 2024/CS370-102 Introduction to Artificial Intelligence/CS370-assignments/Video_Search/Main"
     preprocessed_base_folder = os.path.join(output_path, "Preprocessed")
 
     ensure_dir(preprocessed_base_folder)
