@@ -231,6 +231,7 @@ def encode_objects_with_autoencoder(input_folder, output_folder, autoencoder_mod
             output_filename = os.path.join(output_folder, filename.replace(".png", "_encoded.npy"))
             np.save(output_filename, encoded_representation)
             encoded_data = np.load(output_filename)  # Load the saved encoded file
+            print(encoded_data.shape)
             print(f"Encoded representation saved to: {output_filename}")
 
                 
@@ -290,7 +291,12 @@ if __name__ == "__main__":
         "https://www.youtube.com/watch?v=Y-bVwPRy_no"
     ]
 
-    output_path = "//Users/norsangnyandak/Documents/Spring 2024/CS370-102 Introduction to Artificial Intelligence/CS370-assignments/Video_Search/Main"
+    # For Mac
+    # output_path = "//Users/norsangnyandak/Documents/Spring 2024/CS370-102 Introduction to Artificial Intelligence/CS370-assignments/Video_Search/Main"
+    
+    # For Windows
+    output_path = "C:/Users/theno/OneDrive/Documents/Spring 2024/CS370-102 Introduction to Artificial Intelligence/CS370-assignments/Video_Search/Main"
+
     preprocessed_base_folder = os.path.join(output_path, "Preprocessed")
 
     ensure_dir(preprocessed_base_folder)
