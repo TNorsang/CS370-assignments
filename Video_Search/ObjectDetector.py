@@ -212,41 +212,32 @@ def build_autoencoder(input_shape=(64, 64, 3)):
     autoencoder.compile(optimizer='adam', loss='binary_crossentropy')
     return autoencoder
 
-def encode_objects_with_autoencoder(input_folder, output_folder, autoencoder_model):
-    # Iterate through each image file in the input folder
+def encode_objects_with_autoencoder(input_folder, autoencoder_model):
+    encoded_vectors = []  # Store encoded vectors directly
     for filename in os.listdir(input_folder):
-        if filename.endswith(".png"):  # Assuming all objects are saved as PNG files
-            # Load the image
+        if filename.endswith(".png"):
             image_path = os.path.join(input_folder, filename)
             img = cv2.imread(image_path)
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # Convert to RGB if necessary
-            
-            # Convert the image to array and normalize
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             img_array = img.astype('float32') / 255.0
-            
-            # Encode the image using the autoencoder
-            encoded_representation = autoencoder_model.predict(np.expand_dims(img_array, axis=0))
-            
-            # Save the encoded representation
-            output_filename = os.path.join(output_folder, filename.replace(".png", "_encoded.npy"))
-            np.save(output_filename, encoded_representation)
-            encoded_data = np.load(output_filename)  # Load the saved encoded file
-            print(encoded_data.shape)
-            print(f"Encoded representation saved to: {output_filename}")
+            img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
+            encoded_representation = autoencoder_model.predict(img_array)
+            # Flatten the encoded representation to store in CSV
+            encoded_vectors.append(encoded_representation.flatten())
+    return encoded_vectors
+
 
                 
-def extract_frames_and_detect_objects(video_file_path, model, vidId, interval, output_folder, video_folder_name):
+def extract_frames_and_detect_objects(video_file_path, model, vidId, interval, output_folder, video_folder_name, autoencoder_model, all_results):
     vidcap = cv2.VideoCapture(video_file_path)
     success, image = vidcap.read()
     count = 0
     saved_frames = 0
     fps = vidcap.get(cv2.CAP_PROP_FPS)
-    frames_dir = os.path.join(output_folder, video_folder_name, 'FramesDetected')  # Modify the path here
-    objects_dir = os.path.join(output_folder, video_folder_name, 'ObjectsDetected')  # Modify the path here
-    encoded_output_folder = os.path.join(output_folder, video_folder_name, 'ObjectsEncoded')  # Modify the path here
+    frames_dir = os.path.join(output_folder, video_folder_name, 'FramesDetected')
+    objects_dir = os.path.join(output_folder, video_folder_name, 'ObjectsDetected')
     ensure_dir(frames_dir)
     ensure_dir(objects_dir)
-    ensure_dir(encoded_output_folder)  # Ensure the encoded output folder exists
     results = []
 
     while success and saved_frames < 15:
@@ -257,27 +248,34 @@ def extract_frames_and_detect_objects(video_file_path, model, vidId, interval, o
             if 'labels' in prediction:
                 draw_bounding_boxes(frame_path, prediction)
                 preprocess_detected_objects(Image.fromarray(image), prediction, resize_dim=(64, 64), output_folder=objects_dir, frame_id=saved_frames)
-                encode_objects_with_autoencoder(objects_dir, encoded_output_folder, autoencoder_model)  # Pass the encoded output folder here
+                
+                encoded_vectors = encode_objects_with_autoencoder(objects_dir, autoencoder_model)
 
                 for i, label in enumerate(prediction['labels']):
                     box_info = prediction['boxes'][i]
-                    if torch.is_tensor(box_info):
-                        box_info = box_info.tolist()
+                    # Ensure bounding box coordinates are integers
+                    box_info = [int(coord) for coord in box_info]  
+                    encoded_vector = encoded_vectors[i] if i < len(encoded_vectors) else []
                     results.append([
                         vidId,
                         saved_frames,
-                        datetime.timedelta(seconds=int(count / fps)),
-                        i,  # Detected object ID
+                        str(datetime.timedelta(seconds=int(count / fps))),
+                        i,
                         label,
                         prediction['scores'][i],
-                        box_info
+                        box_info,  # Now contains integer values
+                        list(encoded_vector)  # Convert numpy array to list
                     ])
                 saved_frames += 1
         success, image = vidcap.read()
         count += 1
 
-    columns = ['vidId', 'frameNum', 'timestamp(H:MM:SS)', 'detectedObjId', 'detectedObjClass', 'confidence', 'bbox info']
-    return pd.DataFrame(results, columns=columns)
+    # Append the results of this video to the main results list
+    all_results.extend(results)
+
+    return all_results
+
+
 
 
 
@@ -291,15 +289,13 @@ if __name__ == "__main__":
         "https://www.youtube.com/watch?v=Y-bVwPRy_no"
     ]
 
-    # For Mac
-    # output_path = "//Users/norsangnyandak/Documents/Spring 2024/CS370-102 Introduction to Artificial Intelligence/CS370-assignments/Video_Search/Main"
-    
-    # For Windows
+    # Specify the output path based on your environment
     output_path = "C:/Users/theno/OneDrive/Documents/Spring 2024/CS370-102 Introduction to Artificial Intelligence/CS370-assignments/Video_Search/Main"
 
     preprocessed_base_folder = os.path.join(output_path, "Preprocessed")
-
     ensure_dir(preprocessed_base_folder)
+
+    all_results = []  # Initialize list to accumulate results
 
     for url in video_urls:
         video_folder, video_file_path = download_video(url, output_path)
@@ -307,13 +303,26 @@ if __name__ == "__main__":
             videoID = random.randrange(100)
             safe_title = os.path.basename(video_folder)
             preprocessed_folder = os.path.join(preprocessed_base_folder, safe_title, 'ObjectsDetected')
-
             ensure_dir(preprocessed_folder)
 
-            results_df = extract_frames_and_detect_objects(video_file_path, model, videoID, interval=10, output_folder=preprocessed_base_folder, video_folder_name=safe_title)
-            print(results_df)
-
+            # Directly pass all_results without reassignment
+            extract_frames_and_detect_objects(video_file_path, model, videoID, 10, preprocessed_base_folder, safe_title, autoencoder_model, all_results)
     
+    # After processing all videos, compile results into a DataFrame
+    columns = ['vidId', 'frameNum', 'timestamp(H:MM:SS)', 'detectedObjId', 'detectedObjClass', 'confidence', 'bbox info', 'encoded vector']
+    final_df = pd.DataFrame(all_results, columns=columns)
+    
+    # Save the consolidated DataFrame to a single CSV file
+    csv_output_folder = os.path.join(output_path, "CSV")
+    ensure_dir(csv_output_folder)
+    csv_file_path = os.path.join(csv_output_folder, "all_videos_results.csv")
+    final_df.to_csv(csv_file_path, index=False)
+    print(f"All results saved to CSV at {csv_file_path}")
+
+
+
+
+
 
 
 
