@@ -114,16 +114,15 @@ def download_video(video_url, output_path):
         caption_title = safe_filename(stream.title + " Caption")
         video_folder = os.path.join(output_path, safe_title)
         full_path = os.path.join(video_folder, safe_title + ".mp4")
-        caption_path = os.path.join(video_folder, caption_title + ".srt")  # Path for the SRT file
+        caption_path = os.path.join(video_folder, caption_title + ".srt") 
 
-        # Make sure the directory exists
+      
         if not os.path.exists(video_folder):
             os.makedirs(video_folder)
         
-        # Download the video
+     
         stream.download(video_folder, safe_title + ".mp4")
-        
-        # Write the XML captions to an SRT file
+    
         if caption:
             with open(caption_path, "w", encoding="utf-8") as f:
                 f.write(caption.xml_captions)
@@ -132,7 +131,7 @@ def download_video(video_url, output_path):
             print("No caption was found.")
             
         print(f"Video downloaded successfully to: {full_path}")
-        return video_folder, full_path  # Return the folder path where the video is saved
+        return video_folder, full_path  
     except Exception as e:
         print(f"Error downloading video: {str(e)}")
         return None
@@ -151,7 +150,6 @@ def detect_objects(model, frame_path, confidence_threshold=0.7):
     pred_scores = prediction['scores']
     high_conf_pred_indices = [i for i, score in enumerate(pred_scores) if score > confidence_threshold]
     high_conf_predictions = {
-        # Use get() method to safely retrieve the class name using class ID as key; default to 'unknown' if key not found
         'labels': [coco_class.get(i, 'unknown') for i in prediction['labels'][high_conf_pred_indices].tolist()],
         'scores': prediction['scores'][high_conf_pred_indices].tolist(),
         'boxes': prediction['boxes'][high_conf_pred_indices].tolist()
@@ -179,15 +177,15 @@ def ensure_dir(directory):
  
 def preprocess_detected_objects(image, predictions, resize_dim, output_folder, frame_id):
     for i, box in enumerate(predictions['boxes']):
-        box = [int(coord) for coord in box]  # Convert coordinates to integers
-        cropped_img = image.crop(box)  # Crop the detected object
-        resized_img = cropped_img.resize(resize_dim)  # Resize to the input shape of the autoencoder
+        box = [int(coord) for coord in box]  
+        cropped_img = image.crop(box)  
+        resized_img = cropped_img.resize(resize_dim)  
         
-        # Construct a unique filename for each processed image
+       
         image_filename = f"object_{frame_id}_{i}.png"
         image_path = os.path.join(output_folder, image_filename)
         
-        # Save the preprocessed image
+      
         resized_img.save(image_path)
 
  
@@ -213,16 +211,15 @@ def build_autoencoder(input_shape=(64, 64, 3)):
     return autoencoder
 
 def encode_objects_with_autoencoder(input_folder, autoencoder_model):
-    encoded_vectors = []  # Store encoded vectors directly
+    encoded_vectors = [] 
     for filename in os.listdir(input_folder):
         if filename.endswith(".png"):
             image_path = os.path.join(input_folder, filename)
             img = cv2.imread(image_path)
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             img_array = img.astype('float32') / 255.0
-            img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
+            img_array = np.expand_dims(img_array, axis=0)  
             encoded_representation = autoencoder_model.predict(img_array)
-            # Flatten the encoded representation to store in CSV
             encoded_vectors.append(encoded_representation.flatten())
     return encoded_vectors
 
@@ -253,7 +250,6 @@ def extract_frames_and_detect_objects(video_file_path, model, vidId, interval, o
 
                 for i, label in enumerate(prediction['labels']):
                     box_info = prediction['boxes'][i]
-                    # Ensure bounding box coordinates are integers
                     box_info = [int(coord) for coord in box_info]  
                     encoded_vector = encoded_vectors[i] if i < len(encoded_vectors) else []
                     results.append([
@@ -263,14 +259,13 @@ def extract_frames_and_detect_objects(video_file_path, model, vidId, interval, o
                         i,
                         label,
                         prediction['scores'][i],
-                        box_info,  # Now contains integer values
-                        list(encoded_vector)  # Convert numpy array to list
+                        box_info, 
+                        list(encoded_vector)  
                     ])
                 saved_frames += 1
         success, image = vidcap.read()
         count += 1
 
-    # Append the results of this video to the main results list
     all_results.extend(results)
 
     return all_results
@@ -289,13 +284,12 @@ if __name__ == "__main__":
         "https://www.youtube.com/watch?v=Y-bVwPRy_no"
     ]
 
-    # Specify the output path based on your environment
     output_path = "C:/Users/theno/OneDrive/Documents/Spring 2024/CS370-102 Introduction to Artificial Intelligence/CS370-assignments/Video_Search/Main"
 
     preprocessed_base_folder = os.path.join(output_path, "Preprocessed")
     ensure_dir(preprocessed_base_folder)
 
-    all_results = []  # Initialize list to accumulate results
+    all_results = []  
 
     for url in video_urls:
         video_folder, video_file_path = download_video(url, output_path)
@@ -305,14 +299,11 @@ if __name__ == "__main__":
             preprocessed_folder = os.path.join(preprocessed_base_folder, safe_title, 'ObjectsDetected')
             ensure_dir(preprocessed_folder)
 
-            # Directly pass all_results without reassignment
             extract_frames_and_detect_objects(video_file_path, model, videoID, 10, preprocessed_base_folder, safe_title, autoencoder_model, all_results)
     
-    # After processing all videos, compile results into a DataFrame
     columns = ['vidId', 'frameNum', 'timestamp(H:MM:SS)', 'detectedObjId', 'detectedObjClass', 'confidence', 'bbox info', 'encoded vector']
     final_df = pd.DataFrame(all_results, columns=columns)
     
-    # Save the consolidated DataFrame to a single CSV file
     csv_output_folder = os.path.join(output_path, "CSV")
     ensure_dir(csv_output_folder)
     csv_file_path = os.path.join(csv_output_folder, "all_videos_results.csv")
