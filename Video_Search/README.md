@@ -1,6 +1,6 @@
 # Video Search : Object Detector
 
-Norsang Nyandak Assignment1 Date: 2/28/2024
+## Norsang Nyandak Assignment1 Date: 2/28/2024
 
 Running it locally:
 
@@ -15,15 +15,22 @@ Step 3: Install all modules
 Command: **pip install -r requirements.txt**
 
 Two different paths for storing the csv and other needed data 
+
 1) Local PC path 
+
 2) Docker path
+
 It is crucial to select the path you want to run in otherwise it would not work. These paths are commented out in the ObjectDetector.py file.
 
 
 Running it through Docker:
+
 Build Command : **docker build -t object_detector .**
+
 Run Command : **docker run object_detector**
+
 Make sure the path of the "output_path" is updated to this:
+
 **output_path = "/ObjectDetector"**
 
 
