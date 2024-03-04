@@ -284,7 +284,10 @@ if __name__ == "__main__":
         "https://www.youtube.com/watch?v=Y-bVwPRy_no"
     ]
 
+    # Window's Path
     output_path = "C:/Users/theno/OneDrive/Documents/Spring 2024/CS370-102 Introduction to Artificial Intelligence/CS370-assignments/Video_Search/Main"
+    # Docker's path
+    # output_path = ""
 
     preprocessed_base_folder = os.path.join(output_path, "Preprocessed")
     ensure_dir(preprocessed_base_folder)
