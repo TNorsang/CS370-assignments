@@ -7,11 +7,14 @@ WORKDIR /DroneApp
 # Copy the project files into the container
 COPY . .
 
-# Install required system dependencies for OpenCV and OpenGL
-RUN apt-get update && apt-get install -y libgl1-mesa-glx libsm6 libxext6 libxrender-dev
+# Install required system dependencies for OpenCV, OpenGL, and HDF5
+RUN apt-get update && apt-get install -y libgl1-mesa-glx libsm6 libxext6 libxrender-dev libhdf5-dev
 
 # Install required Python packages
 RUN pip install --no-cache-dir pytube opencv-python torch torchvision pandas keras tensorflow ultralytics
+
+# Install h5py separately due to potential build dependencies
+RUN pip install --no-cache-dir h5py
 
 # Command to run the application
 CMD ["python", "DroneFollowMe.py"]
