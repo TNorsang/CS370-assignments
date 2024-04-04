@@ -9,7 +9,7 @@ from ultralytics import YOLO  # Make sure this import matches the actual library
 model = YOLO("Norsang_Model.pt")
 
 def norsangModel():
-    if os.path.exists("./runs/detect/predict") and len(os.listdir("./runs/detect/predict")) > 0:
+    if os.path.exists("./runs/detect/predict") and len(os.listdir("./runs/detect/predict")) > 3:
         print("Prediction Video Already Exists! Check it out in runs/detect/predict folder!")
         return
     videos = ["./Videos/Cyclist and vehicle Tracking - 1.mp4", "./Videos/Cyclist and vehicle tracking - 2.mp4", "./Videos/Drone Tracking Video.mp4"]
@@ -19,7 +19,7 @@ def norsangModel():
 
 
 def download_youtube_video(youtube_link):
-    if os.path.exists("Videos") and len(os.listdir("Videos")) > 0:
+    if os.path.exists("Videos") and len(os.listdir("Videos")) > 3:
         print("Videos Already Downloaded! Lets Extract the Frames!")
         return
     yt = YouTube(youtube_link)
@@ -29,7 +29,7 @@ def download_youtube_video(youtube_link):
 
 def split_video_into_frames(video, model):
 
-    if os.path.exists("Frames") and len(os.listdir("Frames")) > 0:
+    if os.path.exists("Frames") and len(os.listdir("Frames")) > 3:
         print("Frames Already Exists! Let's Start Object Detection!")
         return
     video_title = os.path.splitext(os.path.basename(video))[0].replace('/', '-').replace('|', '-')  # Sanitize title

@@ -11,7 +11,7 @@ Make sure to run the Docker file
 
 ### Training and Labeling Images:
 
-First make sure you have Anaconda downloaded:
+First make sure you have Anaconda downloaded or using python venv:
 - Create a virtual environment using "conda create -n yolov8_custom python=3.12"
 - Activate by "conda activate yolov8_custom"
 Now to Train:
