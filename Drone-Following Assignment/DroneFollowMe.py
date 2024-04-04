@@ -6,49 +6,18 @@ import os
 from ultralytics import YOLO  # Make sure this import matches the actual library
 
 # Load the YOLOv8 pre-trained model
-model = YOLO("yolov8n.pt")
+model = YOLO("Norsang_Model.pt")
+
+def norsang_model():
+    
+
 
 def download_youtube_video(youtube_link):
     yt = YouTube(youtube_link)
     video_stream = yt.streams.get_highest_resolution()
     video_stream.download(output_path="Videos")
 
-def detect_and_save_objects(frame, detected_frame_path, model):
-    # Perform object detection
-    results = model(frame)
-    
-    # Assuming results contains the detections directly
-    if hasattr(results, 'pred'):  # Checking if the 'pred' attribute exists
-        detections = results.pred[0]  # Accessing the predictions
-    else:
-        print("The results object does not have the expected attributes.")
-        return
 
-    # Iterate through detections
-    for *xyxy, conf, cls in detections:
-        x1, y1, x2, y2 = map(int, xyxy)  # Convert coordinates to integers
-        conf = round(float(conf), 2)  # Round confidence to 2 decimal places
-        cls = int(cls)  # Convert class index to integer
-        
-        # Access class name using class index
-        cls_name = results.names[cls]
-        
-        # Format label with class name and confidence
-        label = f'{cls_name} {conf:.2f}'
-        
-        # Draw bounding box and label on the frame
-        plot_one_box([x1, y1, x2, y2], frame, label=label, color=(255, 0, 0), line_thickness=3)
-    
-    # Save the frame with drawn detections
-    cv2.imwrite(detected_frame_path, frame)
-
-
-
-def plot_one_box(xyxy, img, color=(128, 128, 128), label=None, line_thickness=3):
-    xyxy = [int(x) for x in xyxy]
-    cv2.rectangle(img, (xyxy[0], xyxy[1]), (xyxy[2], xyxy[3]), color, thickness=line_thickness)
-    if label:
-        cv2.putText(img, label, (xyxy[0], xyxy[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
 def split_video_into_frames(video, model):
     video_title = os.path.splitext(os.path.basename(video))[0].replace('/', '-').replace('|', '-')  # Sanitize title
