@@ -36,7 +36,15 @@ Now to Train:
 -  Folder called runs is created that stores the model.
 -  To retrain: Delete labeles.cache in both train and val folder.
 
-Now to Predict:
+### Now to Predict:
+- Simply run DroneFollowMe.py first.
+    Directory: runs>detect>predict
+- Then run Kalman.py after to see the differences between the two.
+    Directory: kalman_filter
+- That is all! 
+
+### If you want to train and run through command line use this
 - Inside runs>detect folder you can find the train folder that it suggested, copy and paste the best.pt inside the weight folder and copy in root
 - Command : "yolo task=detect mode=predict model=Norsang_Model_V1.pt show=True conf=0.5 source=image.jpeg"
 - For Videos: "yolo task=detect mode=predict model=Norsang_Model_V1.pt show=True conf=0.5 source="./Videos/Cyclist and vehicle Tracking - 1.mp4" "
+

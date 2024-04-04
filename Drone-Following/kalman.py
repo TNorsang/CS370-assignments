@@ -70,7 +70,7 @@ def process_videos(video_paths, model, filters):
 
     for idx, video_path in enumerate(video_paths):
         cap = cv2.VideoCapture(video_path)
-        output_filename = os.path.join(download_path, f"output_video_{idx}.mp4")
+        output_filename = os.path.join(download_path, f"Kalman_Video_{idx}.mp4")
         out = cv2.VideoWriter(output_filename, cv2.VideoWriter_fourcc(*'mp4v'), 30, (640, 640))
 
         while True:
