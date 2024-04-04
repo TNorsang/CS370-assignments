@@ -3,7 +3,8 @@
 ## Norsang Nyandak
 
 ### How to install using Docker
-Make sure to run the Docker file
+Make sure to run the Docker file 
+
     Command to build : ' docker build -t <image_name> . '
     Command to run : ' docker run <image_name>'
 
